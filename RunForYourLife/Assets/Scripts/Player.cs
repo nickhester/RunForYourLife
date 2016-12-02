@@ -42,6 +42,10 @@ public class Player : Runner
 	private Slider sliderStamina;
 	
 	private List<Item> inventory = new List<Item>();
+
+	[SerializeField] private Text distanceDisplay;
+	private float distanceRun;
+	private float startZValue;
 	
 	public bool debug_noStumble = false;
 	public bool debug_noDie = false;
@@ -55,6 +59,10 @@ public class Player : Runner
 		animator = GetComponentInChildren<Animator>();
 		currentStamina = startingStamina;
 		sliderStamina = GetComponentInChildren<Slider>();
+
+		startZValue = transform.position.z;
+		distanceRun = transform.position.z - startZValue;
+		distanceDisplay.text = distanceRun.ToString();
 	}
 	
 	protected override void Update ()
@@ -87,6 +95,10 @@ public class Player : Runner
 		{
 			mouseHoldTime = 0.0f;
 		}
+
+		// update distance display
+		distanceRun = transform.position.z - startZValue;
+		distanceDisplay.text = (int)distanceRun + " meters";
 
 		if (debug_alwaysRun)
 		{
