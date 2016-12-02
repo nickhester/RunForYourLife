@@ -5,8 +5,6 @@ using System;
 
 public class FootprintManager : MonoBehaviour
 {
-
-	private Player player;
 	private List<FootprintRegister> existingFootprints = new List<FootprintRegister>();
 
 	[SerializeField] private float distanceToActivateNormal;
@@ -18,6 +16,9 @@ public class FootprintManager : MonoBehaviour
 	public Texture inactiveFootPrint;
 	public Texture activeFootPrint;
 	public Texture primeFootPrint;
+
+	[SerializeField] private ParticleSystem partiPrimeStepPrefab;
+	private List<GameObject> primeParticleEffects = new List<GameObject>();
 
 	public float GetDistanceToActivateNormal()
 	{
@@ -36,17 +37,34 @@ public class FootprintManager : MonoBehaviour
 
 	public float GetDistanceToPlayer(Vector3 myPosition)
 	{
-		return Vector3.Distance(myPosition, player.transform.position);
+		return Vector3.Distance(myPosition, Player.Instance.transform.position);
+	}
+	
+	void SpawnPrimeParticleEffect(Vector3 location)
+	{
+		GameObject go = Instantiate(partiPrimeStepPrefab.gameObject) as GameObject;
+		go.transform.position = location;
+		primeParticleEffects.Add(go);
+		Invoke("DestroyParticleEffect", 4.0f);
 	}
 
-	void Start()
+	void DestroyParticleEffect()
 	{
-		player = FindObjectOfType<Player>();
+		if (primeParticleEffects.Count > 0)
+		{
+			Destroy(primeParticleEffects[0]);
+			primeParticleEffects.RemoveAt(0);
+		}
 	}
 
 	public void PlayerSelectedFootprint(Footprint f)
 	{
-		player.ReportFootprintSelected(f.GetMyFootprintStateObject().GetType());
+		Player.Instance.ReportFootprintSelected(f.GetMyFootprintStateObject().GetType());
+
+		if (f.GetMyFootprintStateObject().GetType() == typeof(FootprintStatePrime))
+		{
+			SpawnPrimeParticleEffect(f.transform.position);
+		}
 
 		if (existingFootprints[0].footprint.GetInstanceID() == f.GetInstanceID())
 		{
@@ -63,7 +81,7 @@ public class FootprintManager : MonoBehaviour
 
 	public void FootprintMissed(Footprint f)
 	{
-		player.ReportFootprintMissed();
+		Player.Instance.ReportFootprintMissed();
 
 		if (f && existingFootprints[0].footprint.GetInstanceID() != f.GetInstanceID())
 		{
@@ -73,7 +91,7 @@ public class FootprintManager : MonoBehaviour
 		for (int i = 0; i < existingFootprints.Count; i++)
 		{
 			FootprintRegister thisFootprint = existingFootprints[i];
-			if (thisFootprint.zPosition - player.transform.position.z < distanceToRemoveFootprintsAfterMissStep)
+			if (thisFootprint.zPosition - Player.Instance.transform.position.z < distanceToRemoveFootprintsAfterMissStep)
 			{
 				existingFootprints.RemoveAt(0);
 				i--;

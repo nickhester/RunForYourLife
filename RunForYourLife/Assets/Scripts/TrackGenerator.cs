@@ -4,33 +4,56 @@ using System.Collections.Generic;
 
 public class TrackGenerator : MonoBehaviour
 {
-	public List<GameObject> TrackChunkPrefabs;
-	private List<GameObject> ChunksCreated;
+	public List<GameObject> trackChunkPrefabs;
+	private List<GameObject> chunksCreated = new List<GameObject>();
 	private Vector3 nextChunkPosition;
-
-	private Player player;
+	
 	public float distanceFromPlayerToSpawnChunk;
+
+	[SerializeField] private float checkChunksToDestroyInterval;
+	private float checkChunksToDestroyCounter = 0.0f;
+	[SerializeField] private float distanceBehindPlayerToDestroyChunks;
 	
 	void Start ()
 	{
-		player = FindObjectOfType<Player>();
 		nextChunkPosition = new Vector3(0.0f, 0.0f, 5.0f);
 	}
 	
 	void Update ()
 	{
-		if (Vector3.Distance(nextChunkPosition, player.transform.position) < distanceFromPlayerToSpawnChunk)
+		checkChunksToDestroyCounter += Time.deltaTime;
+		if (checkChunksToDestroyCounter > checkChunksToDestroyInterval)
+		{
+			DestroyChunksBehindPlayer();
+
+			checkChunksToDestroyCounter = 0.0f;
+		}
+
+		if (Vector3.Distance(nextChunkPosition, Player.Instance.transform.position) < distanceFromPlayerToSpawnChunk)
 		{
 			GenerateNextChunk();
 		}
 	}
 
+	void DestroyChunksBehindPlayer()
+	{
+		for (int i = 0; i < chunksCreated.Count; i++)
+		{
+			if ((Player.Instance.transform.position.z - chunksCreated[i].transform.position.z) > distanceBehindPlayerToDestroyChunks)
+			{
+				Destroy(chunksCreated[i]);
+				chunksCreated.RemoveAt(i);
+				i--;
+			}
+		}
+	}
+
 	public void GenerateNextChunk()
 	{
-		GameObject newChunk = Instantiate(TrackChunkPrefabs[Random.Range(0, TrackChunkPrefabs.Count)]) as GameObject;
+		GameObject newChunk = Instantiate(trackChunkPrefabs[Random.Range(0, trackChunkPrefabs.Count)]) as GameObject;
 		newChunk.transform.position = nextChunkPosition;
 		UpdateNextChunkPosition();
-		ChunksCreated.Add(newChunk);
+		chunksCreated.Add(newChunk);
 	}
 
 	void UpdateNextChunkPosition()

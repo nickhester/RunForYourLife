@@ -2,39 +2,83 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using System;
 
-public class Pursuer : MonoBehaviour
+public class Pursuer : Runner
 {
-	[SerializeField] private float startingMoveSpeed;
-	private float currentMoveSpeed;
-	private Player player;
 	private Slider sliderDistanceFromPlayer;
+	private Canvas myCanvas;
 	[SerializeField] private float distanceFromPlayerToStartSliderProgress;
+	[SerializeField] private float checkTakeABreakInterval;
+	private float checkTakeABreakCounter;
+	[SerializeField] private float startBreakLikelihoodPerInterval;
+	[SerializeField] private float endBreakLikelihoodPerInterval;
+	private bool isTakingABreak = false;
 
-	void Start ()
+	protected override void Start ()
 	{
-		currentMoveSpeed = startingMoveSpeed;
+		base.Start();
 
-		player = FindObjectOfType<Player>();
+		currentMoveSpeed = startMoveSpeed;
 		sliderDistanceFromPlayer = GetComponentInChildren<Slider>();
+		myCanvas = GetComponentInChildren<Canvas>();
+		myCanvas.transform.SetParent(null);
+		myCanvas.transform.position = Vector3.zero;
 	}
 	
-	void Update ()
+	protected override void Update ()
 	{
-		if (!player.GetPlayerHasBeenCaught())
+		base.Update();
+
+		float distanceFromPlayer = Player.Instance.transform.position.z - transform.position.z;
+		float slidervalue = Mathf.Clamp01(-(distanceFromPlayer / distanceFromPlayerToStartSliderProgress) + 1.0f);
+		sliderDistanceFromPlayer.value = slidervalue;
+
+		myCanvas.gameObject.SetActive(slidervalue > 0.0f);
+
+		if (distanceFromPlayer <= 0.0f)
 		{
-			transform.Translate(Vector3.forward * currentMoveSpeed * Time.deltaTime);
+			sliderDistanceFromPlayer.gameObject.SetActive(false);
+			Player.Instance.ReportPursuerCaughtPlayer();
+		}
 
-			float distanceFromPlayer = player.transform.position.z - transform.position.z;
-			float slidervalue = Mathf.Clamp01(-(distanceFromPlayer / distanceFromPlayerToStartSliderProgress) + 1.0f);
-			sliderDistanceFromPlayer.value = slidervalue;
-			//print("DISTANCE: " + (player.transform.position.z - transform.position.z) + "Slider: " + slidervalue);
+		checkTakeABreakCounter += Time.deltaTime;
+		if (checkTakeABreakCounter > checkTakeABreakInterval)
+		{
+			checkTakeABreakCounter = 0.0f;
 
-			if (distanceFromPlayer <= 0.0f)
+			float randValue = UnityEngine.Random.Range(0.0f, 1.0f);
+			float chance = (isTakingABreak ? endBreakLikelihoodPerInterval : startBreakLikelihoodPerInterval);
+			if (randValue <= chance)
 			{
-				sliderDistanceFromPlayer.gameObject.SetActive(false);
-				player.ReportPursuerCaughtPlayer();
+				TakeABreak(!isTakingABreak);
 			}
 		}
+
+		if (isTakingABreak)
+		{
+			currentMoveSpeed = minMoveSpeed;
+		}
+	}
+
+	void OnDestroy()
+	{
+		Destroy(myCanvas);
+	}
+
+	void TakeABreak(bool b)
+	{
+		print("toggling break");
+		isTakingABreak = b;
+	}
+
+	public override bool GetRunnerIsStillRunning()
+	{
+		return true;
+	}
+
+	protected override void ExecuteOneTimeEffects()
+	{
+		currentMoveSpeed += currentRunnerEffect.oneTimeSpeedAdjustment;
 	}
 }

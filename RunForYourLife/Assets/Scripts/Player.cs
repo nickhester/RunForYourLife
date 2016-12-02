@@ -3,20 +3,36 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System;
 
-public class Player : MonoBehaviour
+public class Player : Runner
 {
-	[SerializeField] private float startMoveSpeed;
-	[SerializeField] private float minMoveSpeed;
-	[SerializeField] private float maxMoveSpeed;
-	private float currentMoveSpeed;
-	[SerializeField] private float moveSlowDownRate;
+	// singleton
+	private static Player instance;
+	// instance
+	public static Player Instance
+	{
+		get
+		{
+			if (instance == null)
+			{
+				instance = GameObject.FindObjectOfType(typeof(Player)) as Player;
+			}
+			return instance;
+		}
+	}
+
 	[SerializeField] private float footstepPrimeSpeedUpAmount;
 	[SerializeField] private float footstepActivateSpeedUpAmount;
+	[SerializeField] private float footstepPrimeJumpToAtLeastAmount;
 	[SerializeField] private float missedStepNewSpeed;
+	[SerializeField] private float stumbleMinSpeed;
 	private Animator animator;
 	private bool playerHasBeenCaught = false;
-	
+	private float mouseHoldTime = 0.0f;
+	[SerializeField] private float mouseHoldTimeToStop;
+	[SerializeField] private float mouseHoldStopAmount;
+
 	private float currentStamina;
 	[SerializeField] float startingStamina;
 	[SerializeField] float staminaMax;
@@ -25,38 +41,57 @@ public class Player : MonoBehaviour
 	[SerializeField] float speedToSpendStamina;
 	private Slider sliderStamina;
 	
+	private List<Item> inventory = new List<Item>();
+	
 	public bool debug_noStumble = false;
 	public bool debug_noDie = false;
+	public bool debug_alwaysRun = false;
 
-	void Start ()
+	protected override void Start()
 	{
+		base.Start();
+
 		currentMoveSpeed = startMoveSpeed;
 		animator = GetComponentInChildren<Animator>();
 		currentStamina = startingStamina;
 		sliderStamina = GetComponentInChildren<Slider>();
 	}
 	
-	void Update ()
+	protected override void Update ()
 	{
-		if (!GetPlayerHasBeenCaught())
+		base.Update();
+
+		if (currentMoveSpeed > speedToSpendStamina)
 		{
-			transform.Translate(Vector3.forward * currentMoveSpeed * Time.deltaTime);
-
-			currentMoveSpeed = Mathf.Max(currentMoveSpeed - moveSlowDownRate * Time.deltaTime, minMoveSpeed);
-
-			if (currentMoveSpeed > speedToSpendStamina)
+			currentStamina = Mathf.Max(currentStamina - staminaUsageRate * Time.deltaTime, 0.0f);
+			if (currentStamina <= 0.0f)
 			{
-				currentStamina = Mathf.Max(currentStamina - staminaUsageRate * Time.deltaTime, 0.0f);
-				if (currentStamina <= 0.0f)
-				{
-					FindObjectOfType<FootprintManager>().FootprintMissed(null);
-				}
+				FindObjectOfType<FootprintManager>().FootprintMissed(null);
 			}
-			else
+		}
+		else
+		{
+			currentStamina = Mathf.Min(currentStamina + staminaRegenRate * Time.deltaTime, staminaMax);
+		}
+		sliderStamina.value = currentStamina / staminaMax;
+
+		if (Input.GetMouseButton(0))
+		{
+			mouseHoldTime += Time.deltaTime;
+			if (mouseHoldTime > mouseHoldTimeToStop)
 			{
-				currentStamina = Mathf.Min(currentStamina + staminaRegenRate * Time.deltaTime, staminaMax);
+				currentMoveSpeed -= mouseHoldStopAmount;
 			}
-			sliderStamina.value = currentStamina / staminaMax;
+		}
+		if (Input.GetMouseButtonUp(0))
+		{
+			mouseHoldTime = 0.0f;
+		}
+
+		if (debug_alwaysRun)
+		{
+			currentMoveSpeed = maxMoveSpeed;
+			currentStamina = staminaMax;
 		}
 	}
 
@@ -64,7 +99,7 @@ public class Player : MonoBehaviour
 	{
 		if (footprintState == typeof(FootprintStatePrime))
 		{
-			currentMoveSpeed = Mathf.Min(currentMoveSpeed + footstepPrimeSpeedUpAmount, maxMoveSpeed);
+			currentMoveSpeed = Mathf.Clamp(currentMoveSpeed + footstepPrimeSpeedUpAmount, footstepPrimeJumpToAtLeastAmount, maxMoveSpeed);
 		}
 		else if (footprintState == typeof(FootprintStateActive))
 		{
@@ -74,7 +109,7 @@ public class Player : MonoBehaviour
 
 	public void ReportFootprintMissed()
 	{
-		if (!debug_noStumble)
+		if (!debug_noStumble && currentMoveSpeed > stumbleMinSpeed)
 		{
 			animator.SetTrigger("stumble");
 
@@ -84,7 +119,7 @@ public class Player : MonoBehaviour
 
 	public void ReportPursuerCaughtPlayer()
 	{
-		if (!debug_noDie)
+		if (!debug_noDie && GetRunnerIsStillRunning())
 		{
 			animator.SetTrigger("getCaught");
 			playerHasBeenCaught = true;
@@ -98,8 +133,21 @@ public class Player : MonoBehaviour
 		SceneManager.LoadScene(0);
 	}
 
-	public bool GetPlayerHasBeenCaught()
+	public override bool GetRunnerIsStillRunning()
 	{
-		return playerHasBeenCaught;
+		return !playerHasBeenCaught;
+	}
+
+	public void AddItemToInventory(Item item)
+	{
+		inventory.Add(item);
+	}
+
+	protected override void ExecuteOneTimeEffects()
+	{
+		print("effect applied");
+		inventory.Add(currentRunnerEffect.itemToAddToInventory);
+		currentMoveSpeed += currentRunnerEffect.oneTimeSpeedAdjustment;
+		currentStamina += currentRunnerEffect.oneTimeStaminaLevelAdjustment;
 	}
 }

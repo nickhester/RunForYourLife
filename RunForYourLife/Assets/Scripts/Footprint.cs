@@ -22,7 +22,7 @@ public class Footprint : MonoBehaviour
 		if (newState != null)
 		{
 			myFootprintStateObject = newState;
-			myFootprintStateObject.SetFootprintState(GetComponent<Renderer>().material, footprintManager);
+			myFootprintStateObject.SetFootprintState(GetComponentInChildren<Renderer>().material, footprintManager);
 		}
 		
 		if (myFootprintStateObject.GetType() == typeof(FootprintStateActive))
@@ -55,7 +55,7 @@ public class Footprint : MonoBehaviour
 	public void SetAsUpNext()
 	{
 		myFootprintStateObject = new FootprintStateReady();
-		myFootprintStateObject.SetFootprintState(GetComponent<Renderer>().material, footprintManager);
+		myFootprintStateObject.SetFootprintState(GetComponentInChildren<Renderer>().material, footprintManager);
 	}
 
 	public FootprintState GetMyFootprintStateObject()
