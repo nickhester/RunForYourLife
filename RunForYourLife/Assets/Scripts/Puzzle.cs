@@ -5,17 +5,15 @@ using UnityEngine.UI;
 
 public class Puzzle : MonoBehaviour
 {
-	private List<Button> puzzleButtons = new List<Button>();
 	private Item myItem;
+
+	private List<PuzzlePhase> puzzlePhases = new List<PuzzlePhase>();
 
 	void Start ()
 	{
-		puzzleButtons.AddRange(GetComponentsInChildren<Button>());
-	}
-	
-	void Update ()
-	{
-		
+		puzzlePhases.AddRange(GetComponentsInChildren<PuzzlePhase>());
+		puzzlePhases.Sort();
+		SetNextPhaseUp();
 	}
 
 	public void Initialize(Item item)
@@ -23,16 +21,29 @@ public class Puzzle : MonoBehaviour
 		myItem = item;
 	}
 
-	public void ButtonChosen(Button button)
+	void SetNextPhaseUp()
 	{
-		if (puzzleButtons.Contains(button))
+		int phaseOrderNumber = puzzlePhases[0].order;
+		for (int i = 0; i < puzzlePhases.Count; i++)
 		{
-			button.interactable = false;
+			// set first one active, and all others inactive
+			puzzlePhases[i].gameObject.SetActive(puzzlePhases[i].order == phaseOrderNumber);
 		}
+		
+	}
 
-		if (IsPuzzleComplete())
+	public void ReportPhaseComplete(PuzzlePhase phase)
+	{
+		puzzlePhases.Remove(phase);
+		Destroy(phase.gameObject);
+
+		if (puzzlePhases.Count == 0)
 		{
 			PuzzleCompleted();
+		}
+		else
+		{
+			SetNextPhaseUp();
 		}
 	}
 
@@ -40,17 +51,5 @@ public class Puzzle : MonoBehaviour
 	{
 		myItem.ReportPuzzleCompleted();
 		Destroy(gameObject);
-	}
-
-	bool IsPuzzleComplete()
-	{
-		for (int i = 0; i < puzzleButtons.Count; i++)
-		{
-			if (puzzleButtons[i].IsInteractable())
-			{
-				return false;
-			}
-		}
-		return true;
 	}
 }

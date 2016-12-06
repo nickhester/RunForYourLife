@@ -7,11 +7,12 @@ public class Footprint : MonoBehaviour
 {
 	private FootprintManager footprintManager;
 	private FootprintState myFootprintStateObject;
+	public bool isLeftFoot;
 
 	void Start()
 	{
 		myFootprintStateObject = new FootprintStateInactive();
-		footprintManager = FindObjectOfType<FootprintManager>();
+		footprintManager = Player.Instance.GetComponent<FootprintManager>();
 		footprintManager.RegisterFootprint(this);
 	}
 
@@ -34,6 +35,7 @@ public class Footprint : MonoBehaviour
 		}
 	}
 
+	/*
 	void OnMouseDown()
 	{
 		SelectFootprint();
@@ -41,11 +43,12 @@ public class Footprint : MonoBehaviour
 
 	void SelectFootprint()
 	{
-		if (myFootprintStateObject.GetType() == typeof(FootprintStateActive) || myFootprintStateObject.GetType() == typeof(FootprintStatePrime))
+		if (GetCanBeSelected())
 		{
 			footprintManager.PlayerSelectedFootprint(this);
 		}
 	}
+	*/
 
 	public bool GetCanBeSelected()
 	{

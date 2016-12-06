@@ -42,12 +42,16 @@ public abstract class Item : MonoBehaviour
 
 	public void PickUpItem()
 	{
-		hasBeenPickedUp = true;
-		MakeInvisible();
+		if (Player.Instance.isPlayerHandAvailable())
+		{
+			hasBeenPickedUp = true;
+			MakeInvisible();
+			Player.Instance.AddItemToHand(this);
 
-		// activate puzzle
-		myPuzzle = Instantiate(myPuzzlePrefab) as Puzzle;
-		myPuzzle.Initialize(this);
+			// activate puzzle
+			myPuzzle = Instantiate(myPuzzlePrefab) as Puzzle;
+			myPuzzle.Initialize(this);
+		}
 	}
 
 	void MakeInvisible()
@@ -63,5 +67,7 @@ public abstract class Item : MonoBehaviour
 		// apply effect to player
 		Runner runner = Player.Instance as Runner;
 		runner.ApplyEffect(myEffect);
+
+		Player.Instance.RemoveItemFromHand(this);
 	}
 }

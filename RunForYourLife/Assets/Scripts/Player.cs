@@ -42,6 +42,7 @@ public class Player : Runner
 	private Slider sliderStamina;
 	
 	private List<Item> inventory = new List<Item>();
+	private Item itemInHand = null;
 
 	[SerializeField] private Text distanceDisplay;
 	private float distanceRun;
@@ -157,9 +158,24 @@ public class Player : Runner
 
 	protected override void ExecuteOneTimeEffects()
 	{
-		print("effect applied");
 		inventory.Add(currentRunnerEffect.itemToAddToInventory);
 		currentMoveSpeed += currentRunnerEffect.oneTimeSpeedAdjustment;
 		currentStamina += currentRunnerEffect.oneTimeStaminaLevelAdjustment;
+	}
+
+	public bool isPlayerHandAvailable()
+	{
+		return (itemInHand == null);
+	}
+
+	public void AddItemToHand(Item item)
+	{
+		itemInHand = item;
+	}
+
+	public void RemoveItemFromHand(Item item)
+	{
+		if (item != itemInHand) { Debug.LogWarning("removing item from hand, but other item was found in player hand. ");  }
+		itemInHand = null;
 	}
 }

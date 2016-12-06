@@ -18,6 +18,7 @@ public class FootprintManager : MonoBehaviour
 	public Texture primeFootPrint;
 
 	[SerializeField] private ParticleSystem partiPrimeStepPrefab;
+	[SerializeField] private ParticleSystem partiNormalStepPrefab;
 	private List<GameObject> primeParticleEffects = new List<GameObject>();
 
 	public float GetDistanceToActivateNormal()
@@ -40,9 +41,9 @@ public class FootprintManager : MonoBehaviour
 		return Vector3.Distance(myPosition, Player.Instance.transform.position);
 	}
 	
-	void SpawnPrimeParticleEffect(Vector3 location)
+	void SpawnStepParticleEffect(Vector3 location, ParticleSystem parti)
 	{
-		GameObject go = Instantiate(partiPrimeStepPrefab.gameObject) as GameObject;
+		GameObject go = Instantiate(parti.gameObject) as GameObject;
 		go.transform.position = location;
 		primeParticleEffects.Add(go);
 		Invoke("DestroyParticleEffect", 4.0f);
@@ -63,7 +64,11 @@ public class FootprintManager : MonoBehaviour
 
 		if (f.GetMyFootprintStateObject().GetType() == typeof(FootprintStatePrime))
 		{
-			SpawnPrimeParticleEffect(f.transform.position);
+			SpawnStepParticleEffect(f.transform.position, partiPrimeStepPrefab);
+		}
+		else
+		{
+			SpawnStepParticleEffect(f.transform.position, partiNormalStepPrefab);
 		}
 
 		if (existingFootprints[0].footprint.GetInstanceID() == f.GetInstanceID())
@@ -121,6 +126,16 @@ public class FootprintManager : MonoBehaviour
 		existingFootprints.Sort();
 
 		ActivateNextUp();
+	}
+
+	public void TriggerFootprintButtonPress(bool isLeftFoot)
+	{
+		Footprint nextFootstepUp = existingFootprints[0].footprint;
+		if (nextFootstepUp.isLeftFoot == isLeftFoot
+			&& nextFootstepUp.GetCanBeSelected())
+		{
+			PlayerSelectedFootprint(nextFootstepUp);
+		}
 	}
 }
 
