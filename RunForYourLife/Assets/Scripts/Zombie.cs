@@ -29,6 +29,11 @@ public class Zombie : MonoBehaviour
 		}
 		else
 		{
+			if (Player.Instance.transform.position.z - transform.position.z > 0.0f)
+			{
+				hasPassedPlayer = true;
+			}
+
 			// wiggle so it's obvious when he's been alerted
 			transform.position = new Vector3(transform.position.x, Mathf.Sin(Time.time * 6.0f), transform.position.z);
 
@@ -45,6 +50,7 @@ public class Zombie : MonoBehaviour
 	{
 		if (Player.Instance.transform.position.z - transform.position.z > 0.0f)
 		{
+			print("zombie starting pursuit");
 			GameObject go = Instantiate(pursuerPrefab.gameObject) as GameObject;
 			go.transform.position = transform.position;
 			Destroy(gameObject);
