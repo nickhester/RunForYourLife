@@ -23,11 +23,14 @@ public class Puzzle : MonoBehaviour
 
 	void SetNextPhaseUp()
 	{
-		int phaseOrderNumber = puzzlePhases[0].order;
-		for (int i = 0; i < puzzlePhases.Count; i++)
+		if (puzzlePhases.Count > 0)
 		{
-			// set first one active, and all others inactive
-			puzzlePhases[i].gameObject.SetActive(puzzlePhases[i].order == phaseOrderNumber);
+			int phaseOrderNumber = puzzlePhases[0].order;
+			for (int i = 0; i < puzzlePhases.Count; i++)
+			{
+				// set first one active, and all others inactive
+				puzzlePhases[i].gameObject.SetActive(puzzlePhases[i].order == phaseOrderNumber);
+			}
 		}
 		
 	}
@@ -45,6 +48,12 @@ public class Puzzle : MonoBehaviour
 		{
 			SetNextPhaseUp();
 		}
+	}
+
+	public void ReportPuzzleDropped()
+	{
+		myItem.ReportPuzzleDropped();
+		Destroy(gameObject);
 	}
 
 	void PuzzleCompleted()

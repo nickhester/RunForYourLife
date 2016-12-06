@@ -8,7 +8,10 @@ public class Zombie : MonoBehaviour
 	[SerializeField] private Vector2 distanceRangeToNoticePlayer;
 	private float distanceToNoticePlayer;
 	[SerializeField] private float timeToPursuePlayer;
+	[SerializeField] private float playerPassTimerMultiplier;
+	private float counter = 0.0f;
 	private bool hasBegunEntry = false;
+	private bool hasPassedPlayer = false;
 
 	void Start()
 	{
@@ -21,19 +24,21 @@ public class Zombie : MonoBehaviour
 		{
 			if (Vector3.Distance(transform.position, Player.Instance.transform.position) < distanceToNoticePlayer)
 			{
-				BeginEntry();
+				hasBegunEntry = true;
 			}
 		}
 		else
 		{
-			transform.position = new Vector3(transform.position.x, Mathf.Sin(Time.time * 4.0f), transform.position.z);
-		}
-	}
+			// wiggle so it's obvious when he's been alerted
+			transform.position = new Vector3(transform.position.x, Mathf.Sin(Time.time * 6.0f), transform.position.z);
 
-	void BeginEntry()
-	{
-		hasBegunEntry = true;
-		Invoke("StartPursuit", timeToPursuePlayer);
+			float timeMultiplier = (hasPassedPlayer ? playerPassTimerMultiplier : 1.0f);
+			counter += Time.deltaTime * timeMultiplier;
+			if (counter > timeToPursuePlayer)
+			{
+				StartPursuit();
+			}
+		}
 	}
 
 	void StartPursuit()
@@ -46,7 +51,7 @@ public class Zombie : MonoBehaviour
 		}
 		else
 		{
-			print("started pursuit in front of player... you dead");
+			Player.Instance.ReportPursuerCaughtPlayer();
 		}
 	}
 }

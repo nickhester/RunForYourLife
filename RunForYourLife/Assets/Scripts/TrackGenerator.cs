@@ -13,6 +13,14 @@ public class TrackGenerator : MonoBehaviour
 	[SerializeField] private float checkChunksToDestroyInterval;
 	private float checkChunksToDestroyCounter = 0.0f;
 	[SerializeField] private float distanceBehindPlayerToDestroyChunks;
+
+	public enum ThingsToSpawn
+	{
+		ENEMY,
+		ITEM
+	}
+	public List<Zombie> enemies = new List<Zombie>();
+	public List<Item> items = new List<Item>();
 	
 	void Start ()
 	{
@@ -59,5 +67,15 @@ public class TrackGenerator : MonoBehaviour
 	void UpdateNextChunkPosition()
 	{
 		nextChunkPosition.z += 10.0f;
+	}
+
+	public Zombie GetEnemyPrefabToSpawn()
+	{
+		return enemies[Random.Range(0, enemies.Count)];
+	}
+
+	public Item GetItemPrefabToSpawn()
+	{
+		return items[Random.Range(0, items.Count)];
 	}
 }

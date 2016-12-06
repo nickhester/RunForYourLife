@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class ItemEnergyPills : Item
+public class ItemStaminaAdjust : Item
 {
 	[SerializeField] private float amount;
 

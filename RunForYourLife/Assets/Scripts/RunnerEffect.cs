@@ -11,6 +11,9 @@ public abstract class RunnerEffect
 	// temporary on going effects
 	public float temporaryMaxSpeedAdjustment = 0.0f;
 	public float temporaryStaminaRegenIncrease = 0.0f;
+	public bool temporaryPlayerCantStumble = false;
+
+	public float temporaryTimeLeft = 0.0f;
 
 	public Item itemToAddToInventory = null;
 }
@@ -33,9 +36,10 @@ public class RunnerEffectSpeedOnce : RunnerEffect
 
 public class RunnerEffectAdjustMaxSpeed : RunnerEffect
 {
-	public RunnerEffectAdjustMaxSpeed(float v)
+	public RunnerEffectAdjustMaxSpeed(float v, float t)
 	{
 		temporaryMaxSpeedAdjustment = v;
+		temporaryTimeLeft = t;
 	}
 }
 
@@ -49,8 +53,20 @@ public class RunnerEffectStaminaAdjustOnce : RunnerEffect
 
 public class RunnerEffectAdjustStaminaRegen : RunnerEffect
 {
-	public RunnerEffectAdjustStaminaRegen(float v)
+	public RunnerEffectAdjustStaminaRegen(float v, float t)
 	{
 		temporaryStaminaRegenIncrease = v;
+		temporaryTimeLeft = t;
 	}
 }
+
+public class RunnerEffectMaxSpeedAndNoStumble : RunnerEffect
+{
+	public RunnerEffectMaxSpeedAndNoStumble(float v, float t)
+	{
+		temporaryMaxSpeedAdjustment = v;
+		temporaryTimeLeft = t;
+		temporaryPlayerCantStumble = true;
+	}
+}
+

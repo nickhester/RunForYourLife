@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using System;
 
-public class Pursuer : Runner
+public class Pursuer : Runner, IEventSubscriber
 {
 	private Slider sliderDistanceFromPlayer;
 	private Canvas myCanvas;
@@ -14,16 +14,19 @@ public class Pursuer : Runner
 	[SerializeField] private float startBreakLikelihoodPerInterval;
 	[SerializeField] private float endBreakLikelihoodPerInterval;
 	private bool isTakingABreak = false;
+	private List<Obstacle> obstaclesAhead = new List<Obstacle>();
 
 	protected override void Start ()
 	{
 		base.Start();
-
-		currentMoveSpeed = startMoveSpeed;
+		
 		sliderDistanceFromPlayer = GetComponentInChildren<Slider>();
 		myCanvas = GetComponentInChildren<Canvas>();
 		myCanvas.transform.SetParent(null);
 		myCanvas.transform.position = Vector3.zero;
+
+		UpdateObstacleList();
+		GameObject.FindObjectOfType<EventBroadcast>().SubscribeToEvent(EventBroadcast.Event.OBSTACLE_UPDATED, this);
 	}
 	
 	protected override void Update ()
@@ -59,6 +62,27 @@ public class Pursuer : Runner
 		{
 			currentMoveSpeed = minMoveSpeed;
 		}
+
+		// check if hitting obstacle
+		for (int i = 0; i < obstaclesAhead.Count; i++)
+		{
+			if (obstaclesAhead[i] == null)
+			{
+				obstaclesAhead.RemoveAt(i);
+			}
+			else if (obstaclesAhead[i].gameObject.transform.position.z < transform.position.z)
+			{
+				HitObstacle(obstaclesAhead[i]);
+			}
+		}
+	}
+
+	void HitObstacle(Obstacle o)
+	{
+		print("I'm hitting an obstacle");
+		ApplyEffect(o.myEffect);
+		Destroy(o.gameObject);
+		FindObjectOfType<EventBroadcast>().TriggerEvent(EventBroadcast.Event.OBSTACLE_UPDATED);
 	}
 
 	void OnDestroy()
@@ -68,7 +92,6 @@ public class Pursuer : Runner
 
 	void TakeABreak(bool b)
 	{
-		print("toggling break");
 		isTakingABreak = b;
 	}
 
@@ -77,8 +100,34 @@ public class Pursuer : Runner
 		return true;
 	}
 
-	protected override void ExecuteOneTimeEffects()
+	protected override void ExecuteOneTimeEffects(RunnerEffect effect)
 	{
-		currentMoveSpeed += currentRunnerEffect.oneTimeSpeedAdjustment;
+		currentMoveSpeed += effect.oneTimeSpeedAdjustment;
+	}
+
+	protected override void ApplyPersistentEffects(RunnerEffect effect)
+	{
+		currentMaxMoveSpeed += effect.temporaryMaxSpeedAdjustment;
+	}
+
+	void UpdateObstacleList()
+	{
+		List<Obstacle> allObstacles = new List<Obstacle>();
+		allObstacles.AddRange(FindObjectsOfType<Obstacle>());
+		for (int i = 0; i < allObstacles.Count; i++)
+		{
+			if (!obstaclesAhead.Contains(allObstacles[i]) && allObstacles[i].gameObject.transform.position.z > transform.position.z)
+			{
+				obstaclesAhead.Add(allObstacles[i]);
+			}
+		}
+	}
+
+	public void InformOfEvent(EventBroadcast.Event _event)
+	{
+		if (_event == EventBroadcast.Event.OBSTACLE_UPDATED)
+		{
+			UpdateObstacleList();
+		}
 	}
 }

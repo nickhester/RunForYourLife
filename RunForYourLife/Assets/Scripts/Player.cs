@@ -38,8 +38,11 @@ public class Player : Runner
 	[SerializeField] float staminaMax;
 	[SerializeField] float staminaUsageRate;
 	[SerializeField] float staminaRegenRate;
+	private float currentStaminaRegenRate;
 	[SerializeField] float speedToSpendStamina;
 	private Slider sliderStamina;
+
+	private bool cantStumble = false;
 	
 	private List<Item> inventory = new List<Item>();
 	private Item itemInHand = null;
@@ -55,11 +58,13 @@ public class Player : Runner
 	protected override void Start()
 	{
 		base.Start();
-
-		currentMoveSpeed = startMoveSpeed;
+		
 		animator = GetComponentInChildren<Animator>();
 		currentStamina = startingStamina;
+		currentStaminaRegenRate = staminaRegenRate;
 		sliderStamina = GetComponentInChildren<Slider>();
+
+		cantStumble = debug_noStumble;
 
 		startZValue = transform.position.z;
 		distanceRun = transform.position.z - startZValue;
@@ -68,6 +73,10 @@ public class Player : Runner
 	
 	protected override void Update ()
 	{
+		// set this before base update, so base update can calculate temp effects
+		currentStaminaRegenRate = staminaRegenRate;
+		cantStumble = debug_noStumble;
+
 		base.Update();
 
 		if (currentMoveSpeed > speedToSpendStamina)
@@ -80,7 +89,7 @@ public class Player : Runner
 		}
 		else
 		{
-			currentStamina = Mathf.Min(currentStamina + staminaRegenRate * Time.deltaTime, staminaMax);
+			currentStamina = Mathf.Min(currentStamina + currentStaminaRegenRate * Time.deltaTime, staminaMax);
 		}
 		sliderStamina.value = currentStamina / staminaMax;
 
@@ -103,7 +112,7 @@ public class Player : Runner
 
 		if (debug_alwaysRun)
 		{
-			currentMoveSpeed = maxMoveSpeed;
+			currentMoveSpeed = currentMaxMoveSpeed;
 			currentStamina = staminaMax;
 		}
 	}
@@ -112,17 +121,17 @@ public class Player : Runner
 	{
 		if (footprintState == typeof(FootprintStatePrime))
 		{
-			currentMoveSpeed = Mathf.Clamp(currentMoveSpeed + footstepPrimeSpeedUpAmount, footstepPrimeJumpToAtLeastAmount, maxMoveSpeed);
+			currentMoveSpeed = Mathf.Clamp(currentMoveSpeed + footstepPrimeSpeedUpAmount, footstepPrimeJumpToAtLeastAmount, currentMaxMoveSpeed);
 		}
 		else if (footprintState == typeof(FootprintStateActive))
 		{
-			currentMoveSpeed = Mathf.Min(currentMoveSpeed + footstepActivateSpeedUpAmount, maxMoveSpeed);
+			currentMoveSpeed = Mathf.Min(currentMoveSpeed + footstepActivateSpeedUpAmount, currentMaxMoveSpeed);
 		}
 	}
 
 	public void ReportFootprintMissed()
 	{
-		if (!debug_noStumble && currentMoveSpeed > stumbleMinSpeed)
+		if (!cantStumble && currentMoveSpeed > stumbleMinSpeed)
 		{
 			animator.SetTrigger("stumble");
 
@@ -156,11 +165,21 @@ public class Player : Runner
 		inventory.Add(item);
 	}
 
-	protected override void ExecuteOneTimeEffects()
+	protected override void ExecuteOneTimeEffects(RunnerEffect effect)
 	{
-		inventory.Add(currentRunnerEffect.itemToAddToInventory);
-		currentMoveSpeed += currentRunnerEffect.oneTimeSpeedAdjustment;
-		currentStamina += currentRunnerEffect.oneTimeStaminaLevelAdjustment;
+		inventory.Add(effect.itemToAddToInventory);
+		currentMoveSpeed += effect.oneTimeSpeedAdjustment;
+		currentStamina += effect.oneTimeStaminaLevelAdjustment;
+	}
+
+	protected override void ApplyPersistentEffects(RunnerEffect effect)
+	{
+		currentMaxMoveSpeed += effect.temporaryMaxSpeedAdjustment;
+		currentStaminaRegenRate += effect.temporaryStaminaRegenIncrease;
+		if (effect.temporaryPlayerCantStumble)
+		{
+			cantStumble = true;
+		}
 	}
 
 	public bool isPlayerHandAvailable()

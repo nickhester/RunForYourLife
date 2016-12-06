@@ -12,6 +12,7 @@ public abstract class Item : MonoBehaviour
 	[SerializeField] private RectTransform uiCenterIcon;
 	private RectTransform canvasRect;
 	private bool hasBeenPickedUp = false;
+	[SerializeField] private Obstacle myDroppedObstacle;
 
 	protected virtual void Start()
 	{
@@ -69,5 +70,19 @@ public abstract class Item : MonoBehaviour
 		runner.ApplyEffect(myEffect);
 
 		Player.Instance.RemoveItemFromHand(this);
+		Destroy(gameObject);
+	}
+
+	public void ReportPuzzleDropped()
+	{
+		if (myDroppedObstacle != null)
+		{
+			print("dropping obstacle");
+			Instantiate(myDroppedObstacle, transform.position, Quaternion.identity);
+			FindObjectOfType<EventBroadcast>().TriggerEvent(EventBroadcast.Event.OBSTACLE_UPDATED);
+		}
+
+		Player.Instance.RemoveItemFromHand(this);
+		Destroy(gameObject);
 	}
 }
