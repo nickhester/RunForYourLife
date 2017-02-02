@@ -41,6 +41,10 @@ public class Player : Runner
 	private float currentStaminaRegenRate;
 	[SerializeField] float speedToSpendStamina;
 	private Slider sliderStamina;
+	[SerializeField] float staminaLevelLow;
+	[SerializeField] float staminaLevelHigh;
+	[SerializeField] float staminaLowDecreasedLevel;
+	[SerializeField] float staminaHighIncreasedLevel;
 
 	private bool cantStumble = false;
 	
@@ -54,6 +58,7 @@ public class Player : Runner
 	public bool debug_noStumble = false;
 	public bool debug_noDie = false;
 	public bool debug_alwaysRun = false;
+	public bool debug_infiniteStamina = false;
 
 	protected override void Start()
 	{
@@ -82,9 +87,13 @@ public class Player : Runner
 		if (currentMoveSpeed > speedToSpendStamina)
 		{
 			currentStamina = Mathf.Max(currentStamina - staminaUsageRate * Time.deltaTime, 0.0f);
-			if (currentStamina <= 0.0f)
+			if (currentStamina <= staminaLevelLow)
 			{
-				FindObjectOfType<FootprintManager>().FootprintMissed(null);
+				currentMaxMoveSpeed *= staminaLowDecreasedLevel;
+			}
+			else if (currentStamina >= staminaLevelHigh)
+			{
+				currentMaxMoveSpeed *= staminaHighIncreasedLevel;
 			}
 		}
 		else
@@ -113,6 +122,9 @@ public class Player : Runner
 		if (debug_alwaysRun)
 		{
 			currentMoveSpeed = currentMaxMoveSpeed;
+		}
+		if (debug_infiniteStamina)
+		{
 			currentStamina = staminaMax;
 		}
 	}
