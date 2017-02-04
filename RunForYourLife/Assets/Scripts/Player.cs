@@ -41,10 +41,18 @@ public class Player : Runner
 	private float currentStaminaRegenRate;
 	[SerializeField] float speedToSpendStamina;
 	private Slider sliderStamina;
+	[SerializeField] private Image sliderColor;
 	[SerializeField] float staminaLevelLow;
 	[SerializeField] float staminaLevelHigh;
 	[SerializeField] float staminaLowDecreasedLevel;
 	[SerializeField] float staminaHighIncreasedLevel;
+	enum StaminaLevel
+	{
+		LOW,
+		MID,
+		HIGH,
+		SPECIAL
+	}
 
 	private bool cantStumble = false;
 	private bool noStaminaLoss = false;
@@ -87,27 +95,38 @@ public class Player : Runner
 		base.Update();
 
 		// calculate stamina
-		if (noStaminaLoss)
+		StaminaLevel currentStaminaLevel = StaminaLevel.SPECIAL;
+		if (!noStaminaLoss)
 		{
-			// do nothing
-		}
-		else if (currentMoveSpeed > speedToSpendStamina)
-		{
-			currentStamina = Mathf.Max(currentStamina - staminaUsageRate * Time.deltaTime, 0.0f);
+			// check if regening or using stamina
+			if (currentMoveSpeed > speedToSpendStamina)
+			{
+				currentStamina = Mathf.Max(currentStamina - staminaUsageRate * Time.deltaTime, 0.0f);
+			}
+			else
+			{
+				currentStamina = Mathf.Min(currentStamina + currentStaminaRegenRate * Time.deltaTime, staminaMax);
+			}
+
+			// check stamina level
 			if (currentStamina <= staminaLevelLow)
 			{
 				currentMaxMoveSpeed *= staminaLowDecreasedLevel;
+				currentStaminaLevel = StaminaLevel.LOW;
 			}
 			else if (currentStamina >= staminaLevelHigh)
 			{
 				currentMaxMoveSpeed *= staminaHighIncreasedLevel;
+				currentStaminaLevel = StaminaLevel.HIGH;
+			}
+			else
+			{
+				currentStaminaLevel = StaminaLevel.MID;
 			}
 		}
-		else
-		{
-			currentStamina = Mathf.Min(currentStamina + currentStaminaRegenRate * Time.deltaTime, staminaMax);
-		}
+		
 		sliderStamina.value = currentStamina / staminaMax;
+		ColorSlider(currentStaminaLevel);
 
 		if (Input.GetMouseButton(0))
 		{
@@ -141,6 +160,29 @@ public class Player : Runner
 			debug_noStumble = true;
 			Debug_KeyboardStep();
 		}
+	}
+
+	private void ColorSlider(StaminaLevel s)
+	{
+		switch (s)
+		{
+			case StaminaLevel.LOW:
+				sliderColor.color = Color.red;
+				break;
+			case StaminaLevel.MID:
+				sliderColor.color = Color.blue;
+				break;
+			case StaminaLevel.HIGH:
+				sliderColor.color = Color.green;
+				break;
+			case StaminaLevel.SPECIAL:
+				sliderColor.color = Color.white;
+				break;
+			default:
+				break;
+		}
+
+		//sliderColor.color = 
 	}
 
 	public void ReportFootprintSelected(System.Type footprintState)
