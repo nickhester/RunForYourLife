@@ -11,6 +11,6 @@ public class ItemMaxSpeedAdjust : Item
 	{
 		base.Start();
 
-		myEffect = new RunnerEffectMaxSpeedAndNoStumble(amount, duration);
+		myEffect = new RunnerEffectMaxSpeedAndNoStumbleAndNoStaminaUse(amount, duration);
 	}
 }

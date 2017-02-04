@@ -12,6 +12,7 @@ public abstract class RunnerEffect
 	public float temporaryMaxSpeedAdjustment = 0.0f;
 	public float temporaryStaminaRegenIncrease = 0.0f;
 	public bool temporaryPlayerCantStumble = false;
+	public bool temporaryPlayerNoStaminaLoss = false;
 
 	public float temporaryTimeLeft = 0.0f;
 
@@ -60,13 +61,14 @@ public class RunnerEffectAdjustStaminaRegen : RunnerEffect
 	}
 }
 
-public class RunnerEffectMaxSpeedAndNoStumble : RunnerEffect
+public class RunnerEffectMaxSpeedAndNoStumbleAndNoStaminaUse : RunnerEffect
 {
-	public RunnerEffectMaxSpeedAndNoStumble(float v, float t)
+	public RunnerEffectMaxSpeedAndNoStumbleAndNoStaminaUse(float v, float t)
 	{
 		temporaryMaxSpeedAdjustment = v;
 		temporaryTimeLeft = t;
 		temporaryPlayerCantStumble = true;
+		temporaryPlayerNoStaminaLoss = true;
 	}
 }
 

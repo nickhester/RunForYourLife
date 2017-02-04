@@ -8,7 +8,7 @@ public class PuzzleRequirementSwipe : PuzzleRequirement
 	[SerializeField] private float requiredLength;
 	[SerializeField] private bool requireSlope;
 	[SerializeField] private Vector2 requiredSlope;
-	[SerializeField] private float slopeMarginOfError;
+	private float slopeMarginOfError = 35.0f;	// angle in degrees
 
 	Vector2 mouseStartSwipe;
 	Vector2 mouseEndSwipe;
@@ -27,30 +27,33 @@ public class PuzzleRequirementSwipe : PuzzleRequirement
 	{
 		mouseEndSwipe = ConvertPixelPositionToRatioOfScreen(Input.mousePosition);
 
-		CheckRequirementComplete();
+		if (CheckRequirementComplete())
+		{
+			ReportRequirementsComplete();
+		}
 	}
 
-	void CheckRequirementComplete()
+	bool CheckRequirementComplete()
 	{
 		if (requireLength)
 		{
 			float length = Vector2.Distance(mouseStartSwipe, mouseEndSwipe);
 			if (length < requiredLength)
 			{
-				return;
+				return false;
 			}
 		}
 
 		if (requireSlope)
 		{
-			Vector2 slope = (mouseEndSwipe - mouseStartSwipe).normalized;
-			float slopeDifference = Vector2.Distance(slope, requiredSlope.normalized);
-			if (slopeDifference > slopeMarginOfError)
+			Vector2 slope = (mouseEndSwipe - mouseStartSwipe);
+			//float slopeDifference = Vector2.Distance(slope.normalized, requiredSlope.normalized);
+			float slopeDifference = Vector2.Angle(slope.normalized, requiredSlope.normalized);
+			if (Mathf.Abs(slopeDifference) > slopeMarginOfError)
 			{
-				return;
+				return false;
 			}
 		}
-		
-		ReportRequirementsComplete();
+		return true;
 	}
 }

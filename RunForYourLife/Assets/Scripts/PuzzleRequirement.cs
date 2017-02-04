@@ -19,7 +19,7 @@ public abstract class PuzzleRequirement : MonoBehaviour
 	public static Vector2 ConvertPixelPositionToRatioOfScreen(Vector2 v)
 	{
 		v.x = v.x / Screen.width;
-		v.y = v.y / Screen.height;
+		v.y = v.y / Screen.width;	// divide both by width (dividing by height would skew)
 		return v;
 	}
 }

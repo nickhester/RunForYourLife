@@ -47,6 +47,7 @@ public class Player : Runner
 	[SerializeField] float staminaHighIncreasedLevel;
 
 	private bool cantStumble = false;
+	private bool noStaminaLoss = false;
 	
 	private List<Item> inventory = new List<Item>();
 	private Item itemInHand = null;
@@ -78,13 +79,19 @@ public class Player : Runner
 	
 	protected override void Update ()
 	{
-		// set this before base update, so base update can calculate temp effects
+		// set these before base update, so base update can calculate temp effects
 		currentStaminaRegenRate = staminaRegenRate;
 		cantStumble = debug_noStumble;
+		noStaminaLoss = false;
 
 		base.Update();
 
-		if (currentMoveSpeed > speedToSpendStamina)
+		// calculate stamina
+		if (noStaminaLoss)
+		{
+			// do nothing
+		}
+		else if (currentMoveSpeed > speedToSpendStamina)
 		{
 			currentStamina = Mathf.Max(currentStamina - staminaUsageRate * Time.deltaTime, 0.0f);
 			if (currentStamina <= staminaLevelLow)
@@ -126,6 +133,13 @@ public class Player : Runner
 		if (debug_infiniteStamina)
 		{
 			currentStamina = staminaMax;
+		}
+
+		// DEBUG!
+		if (Input.GetKeyDown(KeyCode.Space))
+		{
+			debug_noStumble = true;
+			Debug_KeyboardStep();
 		}
 	}
 
@@ -192,6 +206,10 @@ public class Player : Runner
 		{
 			cantStumble = true;
 		}
+		if (effect.temporaryPlayerNoStaminaLoss)
+		{
+			noStaminaLoss = true;
+		}
 	}
 
 	public bool isPlayerHandAvailable()
@@ -208,5 +226,10 @@ public class Player : Runner
 	{
 		if (item != itemInHand) { Debug.LogWarning("removing item from hand, but other item was found in player hand. ");  }
 		itemInHand = null;
+	}
+
+	private void Debug_KeyboardStep()
+	{
+		ReportFootprintSelected(typeof(FootprintStatePrime));
 	}
 }
