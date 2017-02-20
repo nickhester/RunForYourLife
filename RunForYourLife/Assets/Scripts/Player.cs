@@ -223,6 +223,11 @@ public class Player : Runner
 		SceneManager.LoadScene(0);
 	}
 
+	public void LoadMainMenu()
+	{
+		SceneManager.LoadScene("DebugMainMenu");
+	}
+
 	public override bool GetRunnerIsStillRunning()
 	{
 		return !playerHasBeenCaught;
