@@ -13,11 +13,6 @@ public class PuzzleRequirementSwipe : PuzzleRequirement
 	Vector2 mouseStartSwipe;
 	Vector2 mouseEndSwipe;
 
-	public void TestPrint(string s)
-	{
-		print(s);
-	}
-
 	public void StartSwipe()
 	{
 		mouseStartSwipe = ConvertPixelPositionToRatioOfScreen(Input.mousePosition);

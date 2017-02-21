@@ -47,6 +47,7 @@ public abstract class Item : MonoBehaviour
 		{
 			hasBeenPickedUp = true;
 			MakeInvisible();
+			transform.SetParent(Player.Instance.transform);
 			Player.Instance.AddItemToHand(this);
 
 			// activate puzzle
