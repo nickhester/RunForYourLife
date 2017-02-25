@@ -25,36 +25,39 @@ public static class CsvParser {
 			}
 			else
 			{
-				LevelChunk chunk = new LevelChunk();
-				
+				int thisTrackType = -1;
+				int thisItemType = -1;
+				int thisEnemyType = -1;
+
 				string lineWithoutEnding = _lines[i].Split('\r')[0];
 				string[] tokens = lineWithoutEnding.Split(',');
 				int a;
 
 				if (int.TryParse((tokens[0]), out a))
 				{
-					chunk.trackType = a;
+					thisTrackType = a;
 				}
 
 				if (int.TryParse((tokens[1]), out a))
 				{
-					chunk.itemType = a;
+					thisItemType = a;
 				}
 				else
 				{
-					chunk.itemType = -1;    // default to -1 to mean no spawn, that way the csv file can just be left blank
+					thisItemType = -1;    // default to -1 to mean no spawn, that way the csv file can just be left blank
 				}
 
 				if (int.TryParse((tokens[2]), out a))
 				{
-					chunk.enemyType = a;
+					thisEnemyType = a;
 				}
 				else
 				{
-					chunk.enemyType = -1;   // default to -1 to mean no spawn, that way the csv file can just be left blank
+					thisEnemyType = -1;   // default to -1 to mean no spawn, that way the csv file can just be left blank
 				}
 
-				_returnLevel.tracks.Add(chunk);
+				LevelChunk chunk = new LevelChunk(thisTrackType, thisItemType, thisEnemyType);
+				_returnLevel.AddTrack(chunk);
 			}
 		}
 		return _returnLevel;

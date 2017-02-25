@@ -16,6 +16,9 @@ public class TrackGenerator : MonoBehaviour
 	private float checkChunksToDestroyCounter = 0.0f;
 	[SerializeField] private float distanceBehindPlayerToDestroyChunks;
 
+	[SerializeField] private float chanceToSpawnItem;
+	[SerializeField] private float chanceToSpawnEnemy;
+
 	private Level currentLevel;
 	private int currentChunkNumber = 0;
 
@@ -51,7 +54,15 @@ void Start ()
 		GameManager gm = FindObjectOfType<GameManager>();
 		if (gm != null && gm.LevelToLoad != "")
 		{
-			currentLevel = CsvParser.DeseriealizeLevel(gm.LevelToLoad);
+			if (gm.LevelToLoad == "*RANDOM*")
+			{
+				LevelGenerator lg = new LevelGenerator(trackChunkPrefabs.Count, items.Count, enemies.Count, chanceToSpawnItem, chanceToSpawnEnemy);
+				currentLevel = lg.Generate(100);
+			}
+			else
+			{
+				currentLevel = CsvParser.DeseriealizeLevel(gm.LevelToLoad);
+			}
 		}
 		else
 		{
@@ -91,9 +102,9 @@ void Start ()
 
 	public void GenerateNextChunk()
 	{
-		if (currentChunkNumber < currentLevel.tracks.Count)     // keep generating chunks until you've exceeded number of chunks
+		if (currentChunkNumber < currentLevel.TrackLength)     // keep generating chunks until you've exceeded number of chunks
 		{
-			LevelChunk currentLevelChunk = currentLevel.tracks[currentChunkNumber];
+			LevelChunk currentLevelChunk = currentLevel.GetTrackAt(currentChunkNumber);
 
 			if (currentLevelChunk.trackType >= trackChunkPrefabs.Count)
 				Debug.LogError("Level requested chunk type outside of range");
