@@ -6,9 +6,11 @@ using UnityEngine.UI;
 public abstract class PuzzleRequirement : MonoBehaviour
 {
 	private PuzzlePhase myPhase;
-	public bool removeWhenCompleted = true;
-	public bool updateImageWhenCompleted = false;
-	public Sprite completedImage;
+	
+	[SerializeField] protected Image targetImage;
+	[SerializeField] protected bool removeWhenCompleted = true;
+	[SerializeField] protected bool updateImageWhenCompleted = false;
+	[SerializeField] protected Sprite completedImage;
 
 	void Start()
 	{
@@ -21,13 +23,17 @@ public abstract class PuzzleRequirement : MonoBehaviour
 
 		if (removeWhenCompleted)
 		{
+			if (targetImage != null)
+			{
+				Destroy(targetImage.gameObject);
+			}
 			Destroy(gameObject);
 			return;
 		}
 
 		if (updateImageWhenCompleted && completedImage != null)
 		{
-			GetComponent<Image>().sprite = completedImage;
+			targetImage.sprite = completedImage;
 		}
 	}
 
